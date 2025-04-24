@@ -386,22 +386,18 @@ elif seleccion == opciones_menu[4]:
         # Intentar preseleccionar Temperatura si existe
         default_x = 'Temperatura (C)' if 'Temperatura (C)' in columnas_numericas_disponibles else columnas_numericas_disponibles[0]
         variable_x = st.selectbox("Selecciona la variable para el eje X:", options=columnas_numericas_disponibles, index=columnas_numericas_disponibles.index(default_x))
-        print(variable_x)
     with col2:
         # Intentar preseleccionar PM2.5 si existe, y que no sea igual a X
         default_y_options = [col for col in ['PM2,5 (ug/m3)', 'O3 (ug/m3)'] if col in columnas_numericas_disponibles and col != variable_x]
         default_y = default_y_options[0] if default_y_options else [col for col in columnas_numericas_disponibles if col != variable_x][0]
         variable_y = st.selectbox("Selecciona la variable para el eje Y:", options=columnas_numericas_disponibles, index=columnas_numericas_disponibles.index(default_y))
-        print(variable_y)
 
     if variable_x == variable_y:
         st.warning("Por favor, selecciona dos variables diferentes para comparar.")
     elif not df_filtrado.empty:
         # Preparar datos para scatter plot, quitando filas donde alguna de las dos variables sea NaN
         df_scatter = df_filtrado[[variable_x, variable_y]].dropna()
-        print(df_scatter.sample(5).to_markdown())
         if not df_scatter.empty:
-            print(df_scatter.shape)
             st.scatter_chart(df_scatter, x=variable_x, y=variable_y)
             
             # Calcular y mostrar correlación de Pearson

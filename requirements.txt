@@ -2,8 +2,4 @@ matplotlib
 pandas
 numpy
 openpyxl
-#Para archivo acevallos:
-streamlit
-pandas
-plotly
-openpyxl
+io

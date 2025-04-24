@@ -51,6 +51,9 @@ if len(fecha) == 2:
 
     # Filtrar solo valores positivos para evitar errores en 'size'
     df_mapa = df_mapa[df_mapa[variable] >= 0]
+    
+     # Crear columna con texto de hover
+    df_mapa['hover_text'] = df_mapa['Fecha'].dt.strftime('%Y-%m-%d %H:%M:%S')
 
     fig_mapa = px.scatter_mapbox(
         df_mapa,
@@ -61,7 +64,8 @@ if len(fecha) == 2:
         color_continuous_scale="Turbo",
         zoom=10,
         height=500,
-        mapbox_style="open-street-map"
+        mapbox_style="open-street-map",
+        hover_name="hover_text"
     )
     st.plotly_chart(fig_mapa, use_container_width=True)
 

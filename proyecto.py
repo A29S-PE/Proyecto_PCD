@@ -23,7 +23,7 @@ def load_dataset():
 
 df = load_dataset()
 
-st.title("Visualización de Calidad del Aire y Variables Ambientales")
+st.title("✨ Dashboard de Monitoreo Ambiental")
 
 # Mostrar dataset
 if st.checkbox("Mostrar algunos ejemplos de datos"):

@@ -143,7 +143,7 @@ if zona_seleccionada != "Todas":
 opciones_menu = [
     "📍 Resumen General",
     "🧪📈 Tendencia: Contaminantes",
-    "📊 Comparativa: Contaminantes",
+    "🧪📊 Comparativa: Contaminantes",
     "🌦️📈 Tendencia: D. Meteorológicos",
     "🔗 Correlaciones",
     "ℹ️ Información Técnica del Dataset"

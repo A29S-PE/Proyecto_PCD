@@ -42,7 +42,7 @@ def load_dataset(file_path) -> pd.DataFrame:
         st.stop()
 
     try:
-        df = pd.read_excel("Monitoreo.xlsx", na_values=['-','',0])
+        df = pd.read_excel(file_path, na_values=['-','',0])
         df.columns = df.columns.str.strip()
         
         df[COL_FECHA_HORA] = pd.to_datetime(df[COL_FECHA_HORA], errors='coerce')
@@ -57,7 +57,7 @@ def load_dataset(file_path) -> pd.DataFrame:
             ((df[COL_LATITUD] == -12.072736) & (df[COL_LONGITUD] == -77.082687)),
             ((df[COL_LATITUD] == -12.040278) & (df[COL_LONGITUD] == -77.043609))
         ]
-        valores = ["Óvalo de Miraflores", "Complejo Deportivo Municipal Niño Manuel Bonilla", "Pontificia Universidad Católica del Perú", "Otro"]
+        valores = ["Óvalo de Miraflores", "Complejo Deportivo Municipal Niño Manuel Bonilla", "Pontificia Universidad Católica del Perú", "Enrique Meiggs con Alfonso Ugarte"]
         df["Zona"] = np.select(condiciones, valores, default="Desconocido")
 
         for col in COLUMNAS_A_LIMPIAR:
@@ -146,7 +146,7 @@ opciones_menu = [
     "📊 Comparativa de Contaminantes",
     "🌦️ Datos Meteorológicos",
     "🔗 Correlaciones",
-    "ℹ️ Información del Dataset"
+    "ℹ️ Información Técnica del Dataset"
 ]
 # Asegurarnos de que el índice 0 siempre sea Resumen General
 seleccion = st.sidebar.radio("Selecciona una sección:", opciones_menu, index=0)
@@ -163,10 +163,90 @@ st.sidebar.markdown(
     """,
     unsafe_allow_html=True
 )
-# st.sidebar.image(image, caption="Pontificia Universidad Católica del Perú", width=100)
 
 # --- Contenido Principal ---
+st.markdown("""
+<style>
+.tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 300px;
+  background-color: #f9f9f9;
+  color: #333;
+  text-align: left;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  position: absolute;
+  z-index: 1;
+  top: 100%;
+  left: 0;
+  font-size: 14px; /* Reducir el tamaño del texto principal */
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+.tooltip .caption {
+  font-size: 10px; /* Hacer el caption más pequeño */
+  color: #777; /* Cambiar color si es necesario */
+  text-align: center;
+  margin-top: 5px;
+}
+</style>
+
+<div class="tooltip">ℹ️
+  <div class="tooltiptext">
+      La Municipalidad de Miraflores firmó un convenio con la startup peruana qAIRa para instalar sensores ambientales que permitirán monitorear en tiempo real la calidad del aire en el distrito. El proyecto, financiado por entidades como el Banco Mundial y CONCYTEC, busca proteger la salud pública mediante datos comparados con los estándares ambientales.
+      <br><br>
+      <img src="https://www.miraflores.gob.pe/wp-content/uploads/2019/10/DSC_0238-1024x681.jpeg" alt="qAIRa" width="100%">
+      <div class="caption">Dron de Monitoreo de Calidad de Aire de qAIRa</div>
+    </div>
+  </div>
+""", unsafe_allow_html=True)
 st.title("Visualización de Calidad del Aire y Variables Ambientales")
+with st.expander("Ver detalles sobre el dataset"):
+    
+    # Crear tres columnas
+    col1, col2, col3 = st.columns(3)
+
+    # Contenido en la primera columna (Identificación y Ubicación)
+    with col1:
+        st.markdown("""
+        🧑‍🔬 **Identificación y Ubicación:**  
+        - **Fecha** → Fecha de la medición
+        - **Latitud y Longitud** → Coordenadas de la ubicación del dron
+        - **Zona** → Estación donde se ubica el dron de monitoreo
+        """)
+    # Contenido en la segunda columna (Contaminantes del aire)
+    with col2:
+        st.markdown("""
+        🧪 **Contaminantes del aire:**  
+        - **CO (ug/m3)** → Monóxido de carbono  
+        - **H2S (ug/m3)** → Sulfuro de hidrógeno  
+        - **NO2 (ug/m3)** → Dióxido de nitrógeno  
+        - **O3 (ug/m3)** → Ozono troposférico  
+        - **PM10 (ug/m3)** → Material particulado de hasta 10 micras  
+        - **PM2,5 (ug/m3)** → Material particulado fino (hasta 2.5 micras)  
+        - **SO2 (ug/m3)** → Dióxido de azufre
+        """)
+
+    # Contenido en la tercera columna (Variables meteorológicas)
+    with col3:
+        st.markdown("""
+        🌡️ **Variables meteorológicas:**  
+        - **Temperatura (C)** → En grados Celsius  
+        - **Humedad (%)** → Relativa  
+        - **Presión (Pa)** → Presión atmosférica  
+        - **UV** → Índice de radiación ultravioleta  
+        - **Ruido (dB)** → Nivel de ruido ambiental
+        """)
 st.markdown(f"Datos de monitoreo reportados por la Municipalidad de Miraflores. Fuente: [Plataforma Nacional de Datos Abiertos](https://www.datosabiertos.gob.pe/dataset/monitoreo-de-calidad-de-aire-qaira%C2%A0de-la-municipalidad-de-miraflores)")
 
 # Mostrar información de filtros aplicados
@@ -288,16 +368,25 @@ elif seleccion == opciones_menu[1]:
         st.info("Por favor, selecciona al menos una variable para visualizar la tendencia.")
     elif not df_filtrado.empty:
         # Preparar datos para st.line_chart (necesita índice de fecha)
-        df_tendencias = df_filtrado.set_index(COL_FECHA)
+        df_tendencias = df_filtrado.set_index(COL_FECHA_HORA)
         
         # Seleccionar solo las columnas elegidas
-        df_grafico = df_tendencias[variables_seleccionadas]
+        df_grafico = df_tendencias[variables_seleccionadas+[COL_FECHA,COL_HORA]]
+
+        # Agrupar por fecha, usamos el promedio de los contaminantes
+        df_diario = df_grafico.groupby(COL_FECHA)[variables_seleccionadas].mean()
+        # Agrupar por hora, usamos el promedio de los contaminantes
+        df_por_hora = df_grafico.groupby(COL_HORA)[variables_seleccionadas].mean()
 
         # Eliminar filas donde *todas* las columnas seleccionadas son NaN para evitar errores
-        df_grafico = df_grafico.dropna(how='all')
+        df_diario = df_diario.dropna(how='all')
+        df_por_hora = df_por_hora.dropna(how='all')
 
-        if not df_grafico.empty:
-            st.line_chart(df_grafico)
+        if (not df_diario.empty) and (not df_por_hora.empty):
+            st.subheader('Tendencia Diaria')
+            st.line_chart(df_diario)
+            st.subheader('Tendencia Horaria')
+            st.line_chart(df_por_hora)
         else:
             st.warning("No hay datos válidos para las variables seleccionadas en el periodo elegido.")
     else:
@@ -319,15 +408,26 @@ elif seleccion == opciones_menu[2]:
     if not df_filtrado.empty:
         # Calcular promedios, ignorando NaN
         promedios = df_filtrado[contaminantes_disponibles].mean(numeric_only=True).dropna()
-
+        df_grouped = df_filtrado[contaminantes_disponibles+[COL_ZONA]].groupby(COL_ZONA).mean(numeric_only=True).dropna()
         if not promedios.empty:
-            st.bar_chart(promedios)
-
-            # Mostrar tabla de promedios
-            st.write("Valores promedio:")
-            df_promedios = promedios.reset_index() # 1. Convierte la Serie a DataFrame
-            df_promedios.columns = ['Contaminante', 'Valor Promedio'] # 2. Asigna los nombres deseados
-            st.dataframe(df_promedios) # 3. Muestra el DataFrame con los nombres correctos
+            if zona_seleccionada == "Todas":
+                tabs = st.tabs(["Bar Chart", "HeatMap"])
+                with tabs[0]:
+                    st.bar_chart(promedios)
+                    # Mostrar tabla de promedios
+                    st.write("Valores promedio:")
+                    df_promedios = promedios.reset_index() # 1. Convierte la Serie a DataFrame
+                    df_promedios.columns = ['Contaminante', 'Valor Promedio'] # 2. Asigna los nombres deseados
+                    st.dataframe(df_promedios) # 3. Muestra el DataFrame con los nombres correctos
+                with tabs[1]:                
+                    st.dataframe(df_grouped.style.background_gradient(cmap='Blues'))
+            else:
+                st.bar_chart(promedios)
+                # Mostrar tabla de promedios
+                st.write("Valores promedio:")
+                df_promedios = promedios.reset_index() # 1. Convierte la Serie a DataFrame
+                df_promedios.columns = ['Contaminante', 'Valor Promedio'] # 2. Asigna los nombres deseados
+                st.dataframe(df_promedios) # 3. Muestra el DataFrame con los nombres correctos
         else:
              st.warning("No se pudieron calcular promedios para los contaminantes en el periodo seleccionado.")
 
@@ -416,7 +516,7 @@ elif seleccion == opciones_menu[4]:
     else:
          st.warning("No hay datos filtrados para mostrar correlaciones.")
 
-# ℹ️ Información del Dataset => VER SI SE QUEDA, PUES SON DATOS QUE PODRÍAN CONFUNDIR AL PÚBLICO GENERAL
+# ℹ️ Información Técnica del Dataset
 elif seleccion == opciones_menu[5]:
     st.header(opciones_menu[5])
     st.markdown("Detalles sobre los datos cargados.")

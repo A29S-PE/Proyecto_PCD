@@ -28,10 +28,9 @@ COL_HORA = 'Hour'
 COL_ESTACION = 'NOMBRE DE LA UO'
 # Definir listas de columnas para facilitar selección
 COLUMNAS_CONTAMINANTES = ['CO (ug/m3)', 'H2S (ug/m3)', 'NO2 (ug/m3)', 'O3 (ug/m3)', 'PM10 (ug/m3)', 'PM2,5 (ug/m3)', 'SO2 (ug/m3)']
-COLUMNAS_METEOROLOGICAS = ['Humedad (%)', 'Presion (Pa)', 'Temperatura (C)', 'UV']
-COLUMNAS_OTRAS = ['Ruido (dB)']
+COLUMNAS_METEOROLOGICAS = ['Humedad (%)', 'Presion (Pa)', 'Temperatura (C)', 'UV', 'Ruido (dB)']
 # Columnas clave para KPIs
-COLUMNAS_KPI = COLUMNAS_CONTAMINANTES + COLUMNAS_OTRAS
+COLUMNAS_KPI = COLUMNAS_CONTAMINANTES + COLUMNAS_METEOROLOGICAS
 
 # --- Funciones ---
 @st.cache_resource
@@ -69,7 +68,7 @@ def load_dataset(file_path) -> pd.DataFrame:
         if COL_LATITUD not in df.columns or COL_LONGITUD not in df.columns:
                 st.warning(f"Advertencia: No se encontraron las columnas '{COL_LATITUD}' y/o '{COL_LONGITUD}'. El mapa no funcionará.")
 
-        columnas_numericas_potenciales = COLUMNAS_CONTAMINANTES + COLUMNAS_METEOROLOGICAS + COLUMNAS_OTRAS
+        columnas_numericas_potenciales = COLUMNAS_CONTAMINANTES + COLUMNAS_METEOROLOGICAS
         for col in columnas_numericas_potenciales:
                 if col in df.columns:
                     df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -100,7 +99,7 @@ df_original = load_dataset(NOMBRE_ARCHIVO)
 
 # Estas son las columnas que se podrán seleccionar en los gráficos
 columnas_numericas_disponibles = [
-    col for col in (COLUMNAS_CONTAMINANTES + COLUMNAS_METEOROLOGICAS + COLUMNAS_OTRAS)
+    col for col in (COLUMNAS_CONTAMINANTES + COLUMNAS_METEOROLOGICAS)
     if col in df_original.columns and pd.api.types.is_numeric_dtype(df_original[col])
 ]
 
@@ -345,22 +344,22 @@ if seleccion == opciones_menu[0]:
 # 📈 Tendencias Temporales
 elif seleccion == opciones_menu[1]:
     st.header(opciones_menu[1])
-    st.markdown("Visualiza la evolución de los contaminantes y otros parámetros en el tiempo.")
+    st.markdown("Visualiza la evolución de los contaminantes en el tiempo.")
 
     if not COL_FECHA in df_filtrado.columns:
         st.warning("Se requiere la columna 'Fecha' para mostrar tendencias temporales.")
         st.stop()
 
     # Asegurarse de tener columnas numéricas para seleccionar
-    if not columnas_numericas_disponibles:
+    if not COLUMNAS_CONTAMINANTES:
         st.warning("No hay columnas numéricas disponibles para graficar.")
         st.stop()
 
     # Selector de variables a graficar
-    default_selection_tend = [col for col in ['PM2.5 (ug/m3)', 'PM10 (ug/m3)', 'O3 (ug/m3)'] if col in columnas_numericas_disponibles]
+    default_selection_tend = [col for col in ['PM2.5 (ug/m3)', 'PM10 (ug/m3)', 'O3 (ug/m3)'] if col in COLUMNAS_CONTAMINANTES]
     variables_seleccionadas = st.multiselect(
         "Selecciona las variables a graficar:",
-        options=columnas_numericas_disponibles,
+        options=COLUMNAS_CONTAMINANTES,
         default=default_selection_tend
     )
 
@@ -444,7 +443,7 @@ elif seleccion == opciones_menu[3]:
         st.stop()
 
     # Filtrar columnas meteorológicas y de ruido disponibles
-    meteo_ruido_disponibles = [col for col in (COLUMNAS_METEOROLOGICAS + COLUMNAS_OTRAS) if col in df_filtrado.columns and pd.api.types.is_numeric_dtype(df_filtrado[col])]
+    meteo_ruido_disponibles = [col for col in (COLUMNAS_METEOROLOGICAS) if col in df_filtrado.columns and pd.api.types.is_numeric_dtype(df_filtrado[col])]
 
     if not meteo_ruido_disponibles:
         st.warning("No hay columnas de datos meteorológicos o ruido disponibles para graficar.")
@@ -525,19 +524,22 @@ elif seleccion == opciones_menu[5]:
     st.dataframe(df_filtrado.head())
 
     st.subheader("Información General y Tipos de Datos:")
+    
     summary_df = pd.DataFrame({
         "Columna": df_filtrado.columns,
-        "Tipo": df_filtrado.dtypes.values,
+        "Tipo": df_filtrado.dtypes.astype(str).values,
         "Nulos": df_filtrado.isnull().sum().values,
         "No nulos": df_filtrado.notnull().sum().values
     })
-
+    
     st.write(f"Cantidad de entradas: {df_filtrado.shape[0]}")
+
     st.dataframe(summary_df)
 
     st.subheader("Estadísticas Descriptivas (columnas numéricas):")
-    st.dataframe(df_filtrado[COLUMNAS_CONTAMINANTES + COLUMNAS_OTRAS + COLUMNAS_METEOROLOGICAS].describe(include='number')) # Incluir solo numéricas explícitamente
-
+    
+    st.dataframe(df_filtrado[COLUMNAS_CONTAMINANTES + COLUMNAS_METEOROLOGICAS].describe(include='number')) # Incluir solo numéricas explícitamente
+    
     st.subheader("📁 Descargar datos filtrados")
     datos_excel = to_excel(df_filtrado)
     st.download_button(

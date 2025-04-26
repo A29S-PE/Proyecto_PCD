@@ -142,9 +142,9 @@ if zona_seleccionada != "Todas":
 # --- Menú Principal ---
 opciones_menu = [
     "📍 Resumen General",
-    "📈 Tendencias Temporales",
+    "🧪📈 Tendencias de Contaminantes",
     "📊 Comparativa de Contaminantes",
-    "🌦️ Datos Meteorológicos",
+    "🌦️📈 Tendencias de Datos Meteorológicos",
     "🔗 Correlaciones",
     "ℹ️ Información Técnica del Dataset"
 ]
@@ -240,7 +240,7 @@ with st.expander("Ver detalles sobre el dataset"):
     # Contenido en la tercera columna (Variables meteorológicas)
     with col3:
         st.markdown("""
-        🌡️ **Variables meteorológicas:**  
+        🌦️ **Variables meteorológicas:**  
         - **Temperatura (C)** → En grados Celsius  
         - **Humedad (%)** → Relativa  
         - **Presión (Pa)** → Presión atmosférica  

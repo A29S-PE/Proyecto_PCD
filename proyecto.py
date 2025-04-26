@@ -132,7 +132,7 @@ opciones_zonas = ["Todas",
                 "Óvalo de Miraflores", 
                 "Complejo Deportivo Municipal Niño Manuel Bonilla", 
                 "Pontificia Universidad Católica del Perú", 
-                "Otro"]
+                "Enrique Meiggs con Alfonso Ugarte"]
 zona_seleccionada = st.sidebar.selectbox("Selecciona la estación:", opciones_zonas)
 if zona_seleccionada != "Todas":
     df_filtrado = df_filtrado[(df_filtrado[COL_ZONA] == zona_seleccionada)].copy()
